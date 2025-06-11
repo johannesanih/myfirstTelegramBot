@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 import telebot
 from telebot.handler_backends import State, StatesGroup
 from telebot.storage import StateMemoryStorage
@@ -5,9 +7,12 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import sqlite3
 from datetime import datetime
 
+load_dotenv()
+
+
 # Use state storage for better control
 state_storage = StateMemoryStorage()
-BOT_TOKEN = 'YOUR_BOT_TOKEN'
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN, state_storage=state_storage)
 
 # Initialize SQLite database
