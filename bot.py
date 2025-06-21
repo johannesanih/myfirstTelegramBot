@@ -1,5 +1,5 @@
 from flask import Flask, request
-from telebot import Telebot
+from telebot import TeleBot
 from dotenv import load_dotenv
 import os
 
@@ -12,37 +12,52 @@ app = Flask(__name__)
 TOKEN = os.getenv("BOT_TOKEN")
 
 # Public url
-public_url = ""
+public_url = os.getenv("PUBLIC_URL")
 
 #Webhook url
 WEBHOOK_URL = public_url + TOKEN
 
 # Initialize bot
-bot = Telebot(TOKEN)
+bot = TeleBot(TOKEN)
 
 # Flask route to handle webhook
-@app.route("/"+TOKEN, methods=["POST"])
+@app.route("/bot"+TOKEN, methods=["POST"])
 def webhook():
-    json_string = request.get_data().decode("utf-8")
-    update = telebot.types.update.de_json(json_string)
-    bot.process_new_updates([update])
-    return "OK", 200
+    try:
+        json_string = request.get_data().decode("utf-8")
+        update = telebot.types.update.de_json(json_string)
+        bot.process_new_updates([update])
+        return "OK", 200
+    except Exception as e:
+        return f"Error: {e}", 500
 
 # Command handlers
 @bot.message_handler(commands=["start"])
 def send_welcome(message):
-    bot.reply_to(message, "Welcome, nice to work for yoy.\nsee /help")
+    try:
+        bot.reply_to(message, "Welcome, nice to work for yoy.\nsee /help")
+    except Exception as e:
+        return f"Error: {e}", 500
 
 @bot.message_handler(commands=['help'])
 def send_help(message):
-    bot.reply_to(message, "Available commands:\n/start - Welcome message\n/help - This help message")
+    try:
+        bot.reply_to(message, "Available commands:\n/start - Welcome message\n/help - This help message")
+    except Exception as e:
+        return f"Error: {e}", 500
 
 # Set webhook
 def set_webhook():
-    bot.remove_webhook()
-    bot.set_webhook(URL=WEBHOOK_URL)
+    try:
+        bot.remove_webhook()
+        bot.set_webhook(url=WEBHOOK_URL)
+    except Exception as e:
+        return f"Error: {e}", 500
 
 if __name__ == "__main__":
-    set_webhook()
-    # Run flask app, 0.0.0.0 for external access
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    try:
+        set_webhook()
+        # Run flask app, 0.0.0.0 for external access
+        app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    except Exception as e:
+        print(f"Error: {e}")
